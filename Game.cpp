@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "Game.hpp"
 
 
@@ -5,6 +7,13 @@ Game::Game()
 {
 	m_window.create(sf::VideoMode(800, 800), "James plays Chess!");
 	m_window.setVerticalSyncEnabled(true);
+}
+
+Game::~Game()
+{
+	std::ofstream st(m_resMgr.getBasePath() + "moves_list.txt");
+	printMoves(st);
+	st.close();
 }
 
 void Game::run()
@@ -65,6 +74,16 @@ void Game::printChessm_board()
 		}
 		std::cout << '\n';
 	}
+}
+
+std::ostream& Game::printMoves(std::ostream& out) const
+{
+	for (size_t i = 0; i < m_moves.size(); ++i)
+	{
+		out << i+1 << ". " << m_moves[i].notation() << std::endl;
+	}
+
+	return out;
 }
 
 void Game::setStartPosition()
@@ -347,6 +366,7 @@ bool Game::applyMove(int xDest, int yDest)
 
 	Move currentMove(Coords(m_turnInfo.clickedSquare.x, m_turnInfo.clickedSquare.y), Coords(xDest, yDest), m_board);
 	std::cout << currentMove.notation() << std::endl;
+	m_moves.emplace_back(currentMove);
 	
 	// White pawn promotion
 	if (clickedPiece.type == PieceType::Pawn

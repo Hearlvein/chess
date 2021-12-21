@@ -24,11 +24,10 @@ public:
 
 	~ResourceManager() = default;
 
+	const std::string& getBasePath() const { return m_basePath; }
 
 	const int getScaleFactor() const { return m_scaleFactor; }
 	const float getScaleFactorFloat() const { return static_cast<float>(m_scaleFactor); }
-
-	const std::string& getBasePath() const { return m_basePath; }
 
 	const sf::Texture& getBoardTexture() const { return m_boardTexture; }
 	const sf::Texture& getPiecesTexture() const { return m_piecesTexture; }

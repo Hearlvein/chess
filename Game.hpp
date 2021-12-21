@@ -17,11 +17,13 @@ class Game
 public:
 	Game();
 
-	~Game() = default;
+	~Game();
 
 	void run();
 	
 	void printChessm_board();
+
+	std::ostream& printMoves(std::ostream& out) const;
 
 	void setStartPosition();
 
@@ -46,4 +48,5 @@ private:
 	PieceColor colorPlaying = PieceColor::White;
 	TurnInfo m_turnInfo;
 	Board m_board;
+	std::vector<Move> m_moves;
 };
