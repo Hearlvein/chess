@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-
 
 struct Coords
 {
@@ -42,14 +40,6 @@ enum class PieceColor
 	White, Black
 };
 
-/*
-static PieceColor opposedColor(PieceColor color)
-{
-	if (color == PieceColor::White)
-		return PieceColor::Black;
-	return PieceColor::White;
-}*/
-
 struct Piece
 {
 	Piece(PieceType _type = PieceType::Void, PieceColor _color = PieceColor::White) : type(_type), color(_color) {}
@@ -57,6 +47,3 @@ struct Piece
 	PieceType type;
 	PieceColor color;
 };
-
-
-typedef std::array< std::array<Piece, 8>, 8 > Board;

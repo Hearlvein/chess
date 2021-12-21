@@ -2,6 +2,7 @@
 
 
 #include <SFML/Graphics.hpp>
+#include <cassert>
 
 #include "Types.hpp"
 
@@ -12,9 +13,13 @@ public:
 	ResourceManager()
 	{
 		m_basePath = "C:/dev/chess/";
-		m_boardTexture.loadFromFile(m_basePath + "board.jpg");
-		m_piecesTexture.loadFromFile(m_basePath + "pieces.png");
-		m_possibleSquareTexture.loadFromFile(m_basePath + "possible.png");
+		assert(m_boardTexture.loadFromFile(m_basePath + "board.jpg"));
+		assert(m_piecesTexture.loadFromFile(m_basePath + "pieces.png"));
+		assert(m_possibleSquareTexture.loadFromFile(m_basePath + "possible.png"));
+
+		m_boardSp.setTexture(m_boardTexture);
+		m_genericPieceSp.setTexture(m_piecesTexture);
+		m_possibleSquareSp.setTexture(m_possibleSquareTexture);
 	}
 
 	~ResourceManager() = default;
@@ -33,7 +38,8 @@ public:
 	sf::Sprite& getPieceSprite(PieceType type, PieceColor color)
 	{
 		int yTextCoord = color == PieceColor::White ? 0 : m_scaleFactor;
-		m_genericPieceSp.setTextureRect({ 0 * m_scaleFactor, yTextCoord, m_scaleFactor, m_scaleFactor });
+		int xTextCoords = static_cast<int>(type);
+		m_genericPieceSp.setTextureRect({ xTextCoords * m_scaleFactor, yTextCoord, m_scaleFactor, m_scaleFactor });
 		return m_genericPieceSp;
 	}
 	sf::Sprite& getPossibleSquareSprite() { return m_possibleSquareSp; }
