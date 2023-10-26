@@ -37,7 +37,7 @@ public:
 
 	bool colorCanGo(PieceColor color, int xDest, int yDest, bool* isPiece = nullptr, bool notAroundOtherKing = false);
 
-	std::vector<Coords> getPossibleSquares(const int x, const int y);
+	std::vector<Move> getPossibleMoves(const int x, const int y);
 
 	bool applyMove(int xDest, int yDest);
 
@@ -45,7 +45,7 @@ public:
 private:
 	sf::RenderWindow m_window;
 	ResourceManager m_resMgr;
-	PieceColor colorPlaying = PieceColor::White;
+	PieceColor m_colorPlaying = PieceColor::White;
 	TurnInfo m_turnInfo;
 	Board m_board;
 	std::vector<Move> m_moves;

@@ -36,14 +36,14 @@ void Game::run()
 			if (m_turnInfo.state == Turn::Idle && m_board[x][y].color == m_colorPlaying)
 			{
 				m_turnInfo.clickedSquare = Coords(x, y);
-				m_turnInfo.possibleMoves = getPossibleMoves(x, y);
-				// std::cout << m_turnInfo.possibleMoves << std::endl;
+				m_turnInfo.possibleSquares = getPossibleSquares(x, y);
+				std::cout << m_turnInfo.possibleSquares << std::endl;
 				m_turnInfo.state = Turn::ShowingMoves;
 			}
 			// ShowingMoves -> Idle (backwards, may not play the previously clicked piece)
 			else if (m_turnInfo.state == Turn::ShowingMoves && Coords(x, y) == m_turnInfo.clickedSquare)
 			{
-				m_turnInfo.possibleMoves.clear();
+				m_turnInfo.possibleSquares.clear();
 				m_turnInfo.state = Turn::Idle;
 			}
 			// ShowingMoves -> opponent Idle
@@ -146,11 +146,11 @@ void Game::renderPossibleSquares()
 	if (m_turnInfo.state != Turn::ShowingMoves)
 		return;
 
-	for (const Move& move : m_turnInfo.possibleMoves)
+	for (const auto& coord : m_turnInfo.possibleSquares)
 	{
 		auto& possibleSquare = m_resMgr.getPossibleSquareSprite();
 		float factor = m_resMgr.getScaleFactorFloat();
-		possibleSquare.setPosition(move.src.x * factor, move.src.y * factor);
+		possibleSquare.setPosition(coord.x * factor, coord.y * factor);
 		m_window.draw(possibleSquare);
 	}
 }
@@ -199,9 +199,9 @@ bool Game::colorCanGo(PieceColor color, int xDest, int yDest, bool* isPiece, boo
 	return false;
 }
 
-std::vector<Move> Game::getPossibleMoves(const int x, const int y)
+std::vector<Coords> Game::getPossibleSquares(const int x, const int y)
 {
-	std::vector<Move> possibleMoves;
+	std::vector<Coords> possibleSquares;
 	const auto& p = m_board[x][y];
 
 	if		(p.type == PieceType::Pawn)
@@ -216,7 +216,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 					if (leftCapture.type != PieceType::Void &&
 						leftCapture.type != PieceType::King &&
 						leftCapture.color == PieceColor::Black
-						) possibleMoves.emplace_back(Move::Type::Simple, x, y, x - 1, y - 1, m_board);
+						) possibleSquares.emplace_back(x - 1, y - 1);
 				}
 
 				if (Coords::areValidCoords(x + 1, y - 1))
@@ -225,15 +225,15 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 					if (rightCapture.type != PieceType::Void &&
 						rightCapture.type != PieceType::King &&
 						rightCapture.color == PieceColor::Black
-						) possibleMoves.emplace_back(Move::Type::Simple, x, y, x + 1, y - 1, m_board);
+						) possibleSquares.emplace_back(x + 1, y - 1);
 				}
 
 				if (m_board[x][y - 1].type == PieceType::Void)
 				{
-					possibleMoves.emplace_back(Move::Type::Simple, x, y, x, y - 1, m_board);
+					possibleSquares.emplace_back(x, y - 1);
 
 					if (y == 6 && m_board[x][y - 2].type == PieceType::Void)
-						possibleMoves.emplace_back(Move::Type::Simple, x, y, x, y - 2, m_board);
+						possibleSquares.emplace_back(x, y - 2);
 				}
 			}
 		}
@@ -247,7 +247,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 					if (leftCapture.type !=  PieceType::Void &&
 						leftCapture.type !=  PieceType::King &&
 						leftCapture.color == opposedColor(m_colorPlaying)
-						) possibleMoves.emplace_back(Move::Type::Simple, x, y, x - 1, y + 1, m_board);
+						) possibleSquares.emplace_back(x - 1, y + 1);
 				}
 
 				if (Coords::areValidCoords(x + 1, y + 1))
@@ -256,35 +256,27 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 					if (rightCapture.type !=  PieceType::Void &&
 						rightCapture.type !=  PieceType::King &&
 						rightCapture.color == opposedColor(m_colorPlaying)
-						) possibleMoves.emplace_back(Move::Type::Simple, x, y, x + 1, y + 1, m_board);
+						) possibleSquares.emplace_back(x + 1, y + 1);
 				}
 
 				if (m_board[x][y + 1].type == PieceType::Void)
 				{
-					possibleMoves.emplace_back(Move::Type::Simple, x, y, x, y + 1, m_board);
+					possibleSquares.emplace_back(x, y + 1);
 
 					if (y == 1 && m_board[x][y + 2].type == PieceType::Void)
-						possibleMoves.emplace_back(Move::Type::Simple, x, y, x, y + 2, m_board);
+						possibleSquares.emplace_back(x, y + 2);
 				}
 
 				// En-passant
 				if (y == 4)
 				{
-					const Move& lm = m_moves.back();
-
 					// Left capture
-					if (x > 0 &&
+					if (const Move& lm = m_moves.back();
+						x > 0 &&
 						lm.src.y == 6 &&
 						lm.dest.y == 4 &&
 						(m_board[x - 1][6].type == PieceType::Void || m_board[x - 1][6].color == PieceColor::White)
-						) possibleMoves.emplace_back(Move::Type::Enpassant, x, y, Coords(x - 1, 5), m_board);
-
-					// Right capture
-					if (x < 7 &&
-						lm.src.y == 6 &&
-						lm.dest.y == 4 &&
-						(m_board[x + 1][6].type == PieceType::Void || m_board[x + 1][6].color == PieceColor::White)
-						) possibleMoves.emplace_back(Move::Type::Enpassant, x, y, Coords(x + 1, 5), m_board);
+						) possibleSquares.emplace_back(Coords(x - 1, 5));
 				}
 			}
 		}
@@ -300,7 +292,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (const auto& coord : potentialCoords)
 		{
 			if (colorCanGo(m_colorPlaying, coord.x, coord.y))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, coord, m_board);
+				possibleSquares.emplace_back(coord);
 		}
 	}
 	else if (p.type == PieceType::Tower		|| p.type == PieceType::Queen)
@@ -310,7 +302,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (int xDest = x + 1; xDest < 8; ++xDest)
 		{
 			if (colorCanGo(m_colorPlaying, xDest, y, &isPiece))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, xDest, y, m_board);
+				possibleSquares.emplace_back(xDest, y);
 
 			if (isPiece)
 				break;
@@ -321,7 +313,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (int xDest = x - 1; xDest >= 0; --xDest)
 		{
 			if (colorCanGo(m_colorPlaying, xDest, y, &isPiece))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, xDest, y, m_board);
+				possibleSquares.emplace_back(xDest, y);
 
 			if (isPiece)
 				break;
@@ -332,7 +324,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (int yDest = y + 1; yDest < 8; ++yDest)
 		{
 			if (colorCanGo(m_colorPlaying, x, yDest, &isPiece))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, x, yDest, m_board);
+				possibleSquares.emplace_back(x, yDest);
 
 			if (isPiece)
 				break;
@@ -343,7 +335,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (int yDest = y - 1; yDest >= 0; --yDest)
 		{
 			if (colorCanGo(m_colorPlaying, x, yDest, &isPiece))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, x, yDest, m_board);
+				possibleSquares.emplace_back(x, yDest);
 
 			if (isPiece)
 				break;
@@ -357,7 +349,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (xDest = x + 1, yDest = y + 1; xDest < 8 && yDest < 8; ++xDest, ++yDest)
 		{
 			if (colorCanGo(m_colorPlaying, xDest, yDest, &isPiece))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, xDest, yDest, m_board);
+				possibleSquares.emplace_back(xDest, yDest);
 
 			if (isPiece)
 				break;
@@ -368,7 +360,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (xDest = x + 1, yDest = y - 1; xDest < 8 && yDest >= 0; ++xDest, --yDest)
 		{
 			if (colorCanGo(m_colorPlaying, xDest, yDest, &isPiece))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, xDest, yDest, m_board);
+				possibleSquares.emplace_back(xDest, yDest);
 
 			if (isPiece)
 				break;
@@ -379,7 +371,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (xDest = x - 1, yDest = y - 1; xDest >= 0 && yDest >= 0; --xDest, --yDest)
 		{
 			if (colorCanGo(m_colorPlaying, xDest, yDest, &isPiece))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, xDest, yDest, m_board);
+				possibleSquares.emplace_back(xDest, yDest);
 
 			if (isPiece)
 				break;
@@ -390,7 +382,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (xDest = x - 1, yDest = y + 1; xDest >= 0 && yDest < 8; --xDest, ++yDest)
 		{
 			if (colorCanGo(m_colorPlaying, xDest, yDest, &isPiece))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, xDest, yDest, m_board);
+				possibleSquares.emplace_back(xDest, yDest);
 
 			if (isPiece)
 				break;
@@ -407,52 +399,32 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (const auto& coord : potentialCoords)
 		{
 			if (colorCanGo(m_colorPlaying, coord.x, coord.y, nullptr, true))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, coord, m_board);
+				possibleSquares.emplace_back(coord);
 		}
 	}
 
-	return possibleMoves;
+	return possibleSquares;
 }
 
 bool Game::applyMove(int xDest, int yDest)
 {
-	const Move* currentMove = nullptr;
-	for (auto it = m_turnInfo.possibleMoves.cbegin(); it != m_turnInfo.possibleMoves.cend(); ++it)
-	{
-		if (it->dest.x == xDest && it->dest.y == yDest)
-		{
-			// Should only be one ocurrence
-			currentMove = &(*it);
-			break;
-		}
-	}
-
-	if (!currentMove)
-	{
-		std::cout << "No valid destination for the move!" << std::endl;
+	// No valid destination for a move
+	if (std::find(m_turnInfo.possibleSquares.begin(), m_turnInfo.possibleSquares.end(), Coords(xDest, yDest)) == m_turnInfo.possibleSquares.end())
 		return false;
-	}
 
 	auto& clickedPiece = m_board[m_turnInfo.clickedSquare.x][m_turnInfo.clickedSquare.y];
 
 	Move currentMove(Coords(m_turnInfo.clickedSquare.x, m_turnInfo.clickedSquare.y), Coords(xDest, yDest), m_board);
-	std::cout << currentMove->notation() << std::endl;
+	std::cout << currentMove.notation() << std::endl;
 	m_moves.emplace_back(currentMove);
 	
 	// White pawn promotion
-	if (currentMove->type == Move::Type::Promotion)
-		m_board[xDest][yDest] = Piece(PieceType::Queen, m_colorPlaying);
+	if (clickedPiece.type == PieceType::Pawn
+		&& clickedPiece.color == PieceColor::White
+		&& yDest == 0)
+		m_board[xDest][yDest] = Piece(PieceType::Queen, PieceColor::White);
 	else
-	{
-		if (currentMove->type == Move::Type::Enpassant)
-		{
-			const Coords& cp = currentMove->capturePosition;
-			m_board[cp.x][cp.y] = Piece(PieceType::Void, PieceColor::White);
-		}
-
-		// Finally move the piece to the clicked square
 		m_board[xDest][yDest] = clickedPiece;
-	}
 	
 	clickedPiece = Piece(PieceType::Void, PieceColor::White);
 

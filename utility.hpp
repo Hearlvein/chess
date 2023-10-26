@@ -12,7 +12,13 @@ std::ostream& operator<<(std::ostream& out, const Coords& coords);
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec)
 {
-	for (const auto& v : vec)
-		out << v << ' ';
+	if (auto it = vec.cbegin(); it != vec.cend())
+	{
+		out << *it;
+		++it;
+		for (; it != vec.cend(); ++it)
+			out << ' ' << *it;
+	}
+
 	return out;
 }

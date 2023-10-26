@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Move.hpp"
+
 
 struct Coords
 {
@@ -27,12 +29,12 @@ struct TurnInfo
 {
 	Turn state = Turn::Idle;
 	Coords clickedSquare;
-	std::vector<Coords> possibleSquares;
+	std::vector<Move> possibleMoves;
 };
 
 enum class PieceType
 {
-	King, Queen, Bishop, Knight, Tower, Pawn, Void
+	King, Queen, Tower, Bishop, Knight, Pawn, Void
 };
 
 enum class PieceColor
