@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Move.hpp"
+#include <vector>
 
+struct Move;
 
 struct Coords
 {

@@ -1,4 +1,5 @@
 #include "Move.hpp"
+#include "Move.hpp"
 
 
 Move::Move(Type _type, Coords _src, Coords _dest, Board& board) : isCapture(false), type(_type), src(_src), dest(_dest)
@@ -35,7 +36,12 @@ Move::Move(Type _type, Coords _src, Coords _dest, Board& board) : isCapture(fals
 	}
 }
 
-Move::Move(Coords _src, Coords _dest, Board& board) : isCapture(false), type(Type::Simple), src(_src), dest(_dest)
+Move::Move(Coords _src, Coords _dest, Board& board) : Move(Move::Type::Simple, _src.x, _src.y, _dest.x, _dest.y, board)
+{
+	
+}
+
+Move::Move(Type _type, int _srcX, int _srcY, int _destX, int _destY, const Board& board) : isCapture(false), src({_srcX, _srcY}), dest({ _destX, _destY }), type(_type)
 {
 	srcPieceType = board[src.x][src.y].type;
 	const auto& ptDest = board[dest.x][dest.y].type;

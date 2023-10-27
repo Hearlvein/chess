@@ -277,14 +277,14 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 						lm.src.y == 6 &&
 						lm.dest.y == 4 &&
 						(m_board[x - 1][6].type == PieceType::Void || m_board[x - 1][6].color == PieceColor::White)
-						) possibleMoves.emplace_back(Move::Type::Enpassant, x, y, Coords(x - 1, 5), m_board);
+						) possibleMoves.emplace_back(Move::Type::Enpassant, x, y, x - 1, 5, m_board);
 
 					// Right capture
 					if (x < 7 &&
 						lm.src.y == 6 &&
 						lm.dest.y == 4 &&
 						(m_board[x + 1][6].type == PieceType::Void || m_board[x + 1][6].color == PieceColor::White)
-						) possibleMoves.emplace_back(Move::Type::Enpassant, x, y, Coords(x + 1, 5), m_board);
+						) possibleMoves.emplace_back(Move::Type::Enpassant, x, y, x + 1, 5, m_board);
 				}
 			}
 		}
@@ -300,7 +300,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (const auto& coord : potentialCoords)
 		{
 			if (colorCanGo(m_colorPlaying, coord.x, coord.y))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, coord, m_board);
+				possibleMoves.emplace_back(Move::Type::Simple, x, y, coord.x, coord.y, m_board);
 		}
 	}
 	else if (p.type == PieceType::Tower		|| p.type == PieceType::Queen)
@@ -407,7 +407,7 @@ std::vector<Move> Game::getPossibleMoves(const int x, const int y)
 		for (const auto& coord : potentialCoords)
 		{
 			if (colorCanGo(m_colorPlaying, coord.x, coord.y, nullptr, true))
-				possibleMoves.emplace_back(Move::Type::Simple, x, y, coord, m_board);
+				possibleMoves.emplace_back(Move::Type::Simple, x, y, coord.x, coord.y, m_board);
 		}
 	}
 
@@ -421,7 +421,7 @@ bool Game::applyMove(int xDest, int yDest)
 	{
 		if (it->dest.x == xDest && it->dest.y == yDest)
 		{
-			// Should only be one ocurrence
+			// Should only be one occurrence
 			currentMove = &(*it);
 			break;
 		}
@@ -435,9 +435,9 @@ bool Game::applyMove(int xDest, int yDest)
 
 	auto& clickedPiece = m_board[m_turnInfo.clickedSquare.x][m_turnInfo.clickedSquare.y];
 
-	Move currentMove(Coords(m_turnInfo.clickedSquare.x, m_turnInfo.clickedSquare.y), Coords(xDest, yDest), m_board);
+	//Move currentMove(Coords(m_turnInfo.clickedSquare.x, m_turnInfo.clickedSquare.y), Coords(xDest, yDest), m_board);
 	std::cout << currentMove->notation() << std::endl;
-	m_moves.emplace_back(currentMove);
+	m_moves.emplace_back(*currentMove);
 	
 	// White pawn promotion
 	if (currentMove->type == Move::Type::Promotion)

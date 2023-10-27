@@ -4,9 +4,9 @@
 #include <SFML/Graphics.hpp>
 
 #include "ResourceManager.hpp"
-#include "Types.hpp"
 #include "utility.hpp"
 #include "Move.hpp"
+#include "Types.hpp"
 
 
 typedef std::array< std::array<Piece, 8>, 8 > Board;

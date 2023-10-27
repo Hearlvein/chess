@@ -19,6 +19,8 @@ struct Move
 
 	Move(Coords _src, Coords _dest, Board& board);
 
+	Move(Type _type, int _srcX, int _srcY, int _destX, int _destY, const Board& board);
+
 	std::string notation() const;
 
 	bool isCapture;
